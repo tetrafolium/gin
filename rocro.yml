@@ -7,6 +7,9 @@ inspecode:
     thresholds: {num-issues: 59}
 
   fortify:
+    options:
+      --build-cmds:
+        - make GO="sourceanalyzer -b build_id go"
     thresholds: {num-issues: 999}
 
   fossology:
@@ -27,7 +30,7 @@ inspecode:
     thresholds: {num-issues: 1}
 
   golint:
-    auto-fix: true
+    # auto-fix: true    # [temporary] reduce run time
     thresholds: {num-issues: 44}
 
   gosec:
