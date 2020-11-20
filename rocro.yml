@@ -6,12 +6,12 @@ inspecode:
   errcheck:
     thresholds: {num-issues: 59}
 
-  fortify:
-    options:
-      --build-cmds:
-        - make GO="sourceanalyzer -b build_id go" test
-      --work-dir: /
-    thresholds: {num-issues: 999}
+  # fortify:
+  #   options:
+  #     --build-cmds:
+  #       - make GO="sourceanalyzer -b build_id go" test
+  #     --work-dir: /
+  #   thresholds: {num-issues: 999}
 
   fossology:
     thresholds: {num-issues: 6}
