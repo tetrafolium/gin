@@ -261,6 +261,18 @@ func TestContextGetInt64(t *testing.T) {
 	assert.Equal(t, int64(42424242424242), c.GetInt64("int64"))
 }
 
+func TestContextGetUint(t *testing.T) {
+	c, _ := CreateTestContext(httptest.NewRecorder())
+	c.Set("uint", uint(1))
+	assert.Equal(t, uint(1), c.GetUint("uint"))
+}
+
+func TestContextGetUint64(t *testing.T) {
+	c, _ := CreateTestContext(httptest.NewRecorder())
+	c.Set("uint64", uint64(18446744073709551615))
+	assert.Equal(t, uint64(18446744073709551615), c.GetUint64("uint64"))
+}
+
 func TestContextGetFloat64(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
 	c.Set("float64", 4.2)
@@ -408,6 +420,21 @@ func TestContextQuery(t *testing.T) {
 	assert.False(t, ok)
 	assert.Empty(t, value)
 	assert.Empty(t, c.PostForm("foo"))
+}
+
+func TestContextDefaultQueryOnEmptyRequest(t *testing.T) {
+	c, _ := CreateTestContext(httptest.NewRecorder()) // here c.Request == nil
+	assert.NotPanics(t, func() {
+		value, ok := c.GetQuery("NoKey")
+		assert.False(t, ok)
+		assert.Empty(t, value)
+	})
+	assert.NotPanics(t, func() {
+		assert.Equal(t, "nada", c.DefaultQuery("NoKey", "nada"))
+	})
+	assert.NotPanics(t, func() {
+		assert.Empty(t, c.Query("NoKey"))
+	})
 }
 
 func TestContextQueryAndPostForm(t *testing.T) {
@@ -940,7 +967,7 @@ func TestContextRenderNoContentHTMLString(t *testing.T) {
 	assert.Equal(t, "text/html; charset=utf-8", w.Header().Get("Content-Type"))
 }
 
-// TestContextData tests that the response can be written from `bytesting`
+// TestContextData tests that the response can be written from `bytestring`
 // with specified MIME type
 func TestContextRenderData(t *testing.T) {
 	w := httptest.NewRecorder()
@@ -991,7 +1018,9 @@ func TestContextRenderFile(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "func New() *Engine {")
-	assert.Equal(t, "text/plain; charset=utf-8", w.Header().Get("Content-Type"))
+	// Content-Type='text/plain; charset=utf-8' when go version <= 1.16,
+	// else, Content-Type='text/x-go; charset=utf-8'
+	assert.NotEqual(t, "", w.Header().Get("Content-Type"))
 }
 
 func TestContextRenderFileFromFS(t *testing.T) {
@@ -1003,7 +1032,9 @@ func TestContextRenderFileFromFS(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "func New() *Engine {")
-	assert.Equal(t, "text/plain; charset=utf-8", w.Header().Get("Content-Type"))
+	// Content-Type='text/plain; charset=utf-8' when go version <= 1.16,
+	// else, Content-Type='text/x-go; charset=utf-8'
+	assert.NotEqual(t, "", w.Header().Get("Content-Type"))
 	assert.Equal(t, "/some/path", c.Request.URL.Path)
 }
 
@@ -1017,7 +1048,7 @@ func TestContextRenderAttachment(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	assert.Contains(t, w.Body.String(), "func New() *Engine {")
-	assert.Equal(t, fmt.Sprintf("attachment; filename=\"%s\"", newFilename), w.HeaderMap.Get("Content-Disposition"))
+	assert.Equal(t, fmt.Sprintf("attachment; filename=\"%s\"", newFilename), w.Header().Get("Content-Disposition"))
 }
 
 // TestContextRenderYAML tests that the response is serialized as YAML
@@ -1255,7 +1286,7 @@ func TestContextIsAborted(t *testing.T) {
 	assert.True(t, c.IsAborted())
 }
 
-// TestContextData tests that the response can be written from `bytesting`
+// TestContextData tests that the response can be written from `bytestring`
 // with specified MIME type
 func TestContextAbortWithStatus(t *testing.T) {
 	w := httptest.NewRecorder()
@@ -1364,12 +1395,11 @@ func TestContextAbortWithError(t *testing.T) {
 func TestContextClientIP(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
 	c.Request, _ = http.NewRequest("POST", "/", nil)
+	c.engine.trustedCIDRs, _ = c.engine.prepareTrustedCIDRs()
+	resetContextForClientIPTests(c)
 
-	c.Request.Header.Set("X-Real-IP", " 10.10.10.10  ")
-	c.Request.Header.Set("X-Forwarded-For", "  20.20.20.20, 30.30.30.30")
-	c.Request.Header.Set("X-Appengine-Remote-Addr", "50.50.50.50")
-	c.Request.RemoteAddr = "  40.40.40.40:42123 "
-
+	// Legacy tests (validating that the defaults don't break the
+	// (insecure!) old behaviour)
 	assert.Equal(t, "20.20.20.20", c.ClientIP())
 
 	c.Request.Header.Del("X-Forwarded-For")
@@ -1389,6 +1419,82 @@ func TestContextClientIP(t *testing.T) {
 	// no port
 	c.Request.RemoteAddr = "50.50.50.50"
 	assert.Empty(t, c.ClientIP())
+
+	// Tests exercising the TrustedProxies functionality
+	resetContextForClientIPTests(c)
+
+	// No trusted proxies
+	_ = c.engine.SetTrustedProxies([]string{})
+	c.engine.RemoteIPHeaders = []string{"X-Forwarded-For"}
+	assert.Equal(t, "40.40.40.40", c.ClientIP())
+
+	// Last proxy is trusted, but the RemoteAddr is not
+	_ = c.engine.SetTrustedProxies([]string{"30.30.30.30"})
+	assert.Equal(t, "40.40.40.40", c.ClientIP())
+
+	// Only trust RemoteAddr
+	_ = c.engine.SetTrustedProxies([]string{"40.40.40.40"})
+	assert.Equal(t, "20.20.20.20", c.ClientIP())
+
+	// All steps are trusted
+	_ = c.engine.SetTrustedProxies([]string{"40.40.40.40", "30.30.30.30", "20.20.20.20"})
+	assert.Equal(t, "20.20.20.20", c.ClientIP())
+
+	// Use CIDR
+	_ = c.engine.SetTrustedProxies([]string{"40.40.25.25/16", "30.30.30.30"})
+	assert.Equal(t, "20.20.20.20", c.ClientIP())
+
+	// Use hostname that resolves to all the proxies
+	_ = c.engine.SetTrustedProxies([]string{"foo"})
+	assert.Equal(t, "40.40.40.40", c.ClientIP())
+
+	// Use hostname that returns an error
+	_ = c.engine.SetTrustedProxies([]string{"bar"})
+	assert.Equal(t, "40.40.40.40", c.ClientIP())
+
+	// X-Forwarded-For has a non-IP element
+	_ = c.engine.SetTrustedProxies([]string{"40.40.40.40"})
+	c.Request.Header.Set("X-Forwarded-For", " blah ")
+	assert.Equal(t, "40.40.40.40", c.ClientIP())
+
+	// Result from LookupHost has non-IP element. This should never
+	// happen, but we should test it to make sure we handle it
+	// gracefully.
+	_ = c.engine.SetTrustedProxies([]string{"baz"})
+	c.Request.Header.Set("X-Forwarded-For", " 30.30.30.30 ")
+	assert.Equal(t, "40.40.40.40", c.ClientIP())
+
+	_ = c.engine.SetTrustedProxies([]string{"40.40.40.40"})
+	c.Request.Header.Del("X-Forwarded-For")
+	c.engine.RemoteIPHeaders = []string{"X-Forwarded-For", "X-Real-IP"}
+	assert.Equal(t, "10.10.10.10", c.ClientIP())
+
+	c.engine.RemoteIPHeaders = []string{}
+	c.engine.AppEngine = true
+	assert.Equal(t, "50.50.50.50", c.ClientIP())
+
+	c.Request.Header.Del("X-Appengine-Remote-Addr")
+	assert.Equal(t, "40.40.40.40", c.ClientIP())
+
+	c.engine.AppEngine = false
+	c.engine.CloudflareProxy = true
+	assert.Equal(t, "60.60.60.60", c.ClientIP())
+
+	c.Request.Header.Del("CF-Connecting-IP")
+	assert.Equal(t, "40.40.40.40", c.ClientIP())
+
+	// no port
+	c.Request.RemoteAddr = "50.50.50.50"
+	assert.Empty(t, c.ClientIP())
+}
+
+func resetContextForClientIPTests(c *Context) {
+	c.Request.Header.Set("X-Real-IP", " 10.10.10.10  ")
+	c.Request.Header.Set("X-Forwarded-For", "  20.20.20.20, 30.30.30.30")
+	c.Request.Header.Set("X-Appengine-Remote-Addr", "50.50.50.50")
+	c.Request.Header.Set("CF-Connecting-IP", "60.60.60.60")
+	c.Request.RemoteAddr = "  40.40.40.40:42123 "
+	c.engine.AppEngine = false
 }
 
 func TestContextContentType(t *testing.T) {
@@ -1932,4 +2038,13 @@ func TestContextWithKeysMutex(t *testing.T) {
 	value, err = c.Get("foo2")
 	assert.Nil(t, value)
 	assert.False(t, err)
+}
+
+func TestRemoteIPFail(t *testing.T) {
+	c, _ := CreateTestContext(httptest.NewRecorder())
+	c.Request, _ = http.NewRequest("POST", "/", nil)
+	c.Request.RemoteAddr = "[:::]:80"
+	ip, trust := c.RemoteIP()
+	assert.Nil(t, ip)
+	assert.False(t, trust)
 }
