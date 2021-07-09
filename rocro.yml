@@ -6,14 +6,9 @@ inspecode:
   tools:
 
     fortify:
-    - thresholds: {num-issues: 999}
-    - thresholds: {num-issues: 999}
       options:
         --commands:
-          - make GO="sourceanalyzer -b build_id go"
-        --work-dir: /
-    - thresholds: {num-issues: 999}
-      options:
-        --commands:
+          - apt-get install go
           - make GO="sourceanalyzer -b build_id go" test
         --work-dir: /
+      thresholds: {num-issues: 999}
