@@ -16,7 +16,7 @@ inspecode:
           - GO_TARBALL="${GO_VERSION}.${OS_ARCH}.tar.gz"
           - echo +++ "${GO_ARCHIVE}/${GO_TARBALL}"
           # - curl --silent -O "${GO_ARCHIVE}/${GO_TARBALL}"
-          - curl -O "${GO_ARCHIVE}/${GO_TARBALL}"
+          - curl -O "${GO_ARCHIVE}/${GO_TARBALL}" || echo "curl -- $?"
           - sha256sum "${GO_TARBALL}"
           - echo +++ sha256 = 3d3beec5fc66659018e09f40abb7274b10794229ba7c1e8bdb7d8ca77b656a13 +++
           - sudo tar -C /usr/local -xzf "${GO_TARBALL}"
