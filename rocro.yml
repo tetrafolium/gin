@@ -5,63 +5,15 @@ inspecode:
 
   tools:
 
-    coverity:
-      thresholds: {num-issues: 999}
-
-    cpd:
-      thresholds: {num-issues: 14}
-
-    errcheck:
-      thresholds: {num-issues: 62}
-
     fortify:
-    #   options:
-    #     --build-cmds:
-    #       - make GO="sourceanalyzer -b build_id go" test
-    #     --work-dir: /
-      thresholds: {num-issues: 999}
-
-    fossology:
-      thresholds: {num-issues: 6}
-
-    go-test:
-      thresholds: {num-issues: 0}
-
-    go-vet:
-      thresholds: {num-issues: 0}
-
-    gofmt:
-      auto-fix: true
-      thresholds: {num-issues: 0}
-
-    goimports:
-      auto-fix: true
-      thresholds: {num-issues: 1}
-
-    golint:
-      auto-fix: true
-      thresholds: {num-issues: 44}
-
-    gosec:
-      thresholds: {num-issues: 6}
-  
-    grep:
-      thresholds: {num-issues: 0}
-
-    ineffassign:
-      thresholds: {num-issues: 0}
-
-    jscpd:
-      thresholds: {num-issues: 46}
-
-    misspell:
-      auto-fix: true
-      thresholds: {num-issues: 0}
-
-    staticcheck:
-      thresholds: {num-issues: 10}
-
-    unused:
-      ignore: "**/*_test.go"
-      options: [--single-occurrence, --all-likelihoods]
-      thresholds: {num-issues: 8}
+    - thresholds: {num-issues: 999}
+    - thresholds: {num-issues: 999}
+      options:
+        --commands:
+          - make GO="sourceanalyzer -b build_id go"
+        --work-dir: /
+    - thresholds: {num-issues: 999}
+      options:
+        --commands:
+          - make GO="sourceanalyzer -b build_id go" test
+        --work-dir: /
