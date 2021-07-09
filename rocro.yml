@@ -24,6 +24,7 @@ inspecode:
           - ls -la "${GOROOT}/bin"
           - PATH="${PATH}:${GOROOT}/bin"
           - echo +++ $(go version)
+          - cd /home/rocro/src/github.com/tetrafolium/gin
           - make GO="sourceanalyzer -b build_id go" test
         --work-dir: /
       thresholds: {num-issues: 999}
