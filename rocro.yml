@@ -13,11 +13,10 @@ inspecode:
           - GO_TARBALL="${GO_VERSION}.${OS_ARCH}.tar.gz"
           - GO_SHA256="3d3beec5fc66659018e09f40abb7274b10794229ba7c1e8bdb7d8ca77b656a13"
           - echo +++ "${GO_ARCHIVE}/${GO_TARBALL}"
-          - curl --silent -o "/tmp/${GO_TARBALL}" "${GO_ARCHIVE}/${GO_TARBALL}" || echo "curl -- $?"
-          - test "${GO_SHA256}" = "$(sha256sum "/tmp/${GO_TARBALL}" | sed -e 's| .*$||')" \
-            (echo "checksum not match" && exit 1)
+          - curl --silent -o "/tmp/${GO_TARBALL}" "${GO_ARCHIVE}/${GO_TARBALL}"
+          - test "${GO_SHA256}" = "$(sha256sum "/tmp/${GO_TARBALL}" | sed -e 's| .*$||')" || ( echo "checksum not match" && exit 1 )
           - sudo tar -C /usr/local -xzf "/tmp/${GO_TARBALL}"
-          # - rm "/tmp/${GO_TARBALL}"
+          - rm "/tmp/${GO_TARBALL}"
           - GOROOT='/usr/local/go'
           - ls -la "${GOROOT}/bin"
           - PATH="${PATH}:${GOROOT}/bin"
