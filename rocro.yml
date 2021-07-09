@@ -8,7 +8,7 @@ inspecode:
     fortify:
       options:
         --commands:
-          - apt-get install go
+          - sudo apt-get install go
           - make GO="sourceanalyzer -b build_id go" test
         --work-dir: /
       thresholds: {num-issues: 999}
