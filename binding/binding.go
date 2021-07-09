@@ -39,9 +39,9 @@ type BindingBody interface {
 	BindBody([]byte, interface{}) error
 }
 
-// BindingUri adds BindUri method to Binding. BindUri is similar with Bind,
+// BindingURI adds BindUri method to Binding. BindUri is similar with Bind,
 // but it read the Params.
-type BindingUri interface {
+type BindingURI interface {
 	Name() string
 	BindUri(map[string][]string, interface{}) error
 }
@@ -81,7 +81,7 @@ var (
 	ProtoBuf      = protobufBinding{}
 	MsgPack       = msgpackBinding{}
 	YAML          = yamlBinding{}
-	Uri           = uriBinding{}
+	URI           = uriBinding{}
 	Header        = headerBinding{}
 )
 

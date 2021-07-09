@@ -199,8 +199,8 @@ func (engine *Engine) Delims(left, right string) *Engine {
 	return engine
 }
 
-// SecureJsonPrefix sets the secureJSONPrefix used in Context.SecureJSON.
-func (engine *Engine) SecureJsonPrefix(prefix string) *Engine {
+// SecureJSONPrefix sets the secureJSONPrefix used in Context.SecureJSON.
+func (engine *Engine) SecureJSONPrefix(prefix string) *Engine {
 	engine.secureJSONPrefix = prefix
 	return engine
 }

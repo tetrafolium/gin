@@ -793,7 +793,7 @@ func TestContextRenderSecureJSON(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, router := CreateTestContext(w)
 
-	router.SecureJsonPrefix("&&&START&&&")
+	router.SecureJSONPrefix("&&&START&&&")
 	c.SecureJSON(http.StatusCreated, []string{"foo", "bar"})
 
 	assert.Equal(t, http.StatusCreated, w.Code)
@@ -817,7 +817,7 @@ func TestContextRenderNoContentAsciiJSON(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := CreateTestContext(w)
 
-	c.AsciiJSON(http.StatusNoContent, []string{"lang", "Go语言"})
+	c.ASCIIJSON(http.StatusNoContent, []string{"lang", "Go语言"})
 
 	assert.Equal(t, http.StatusNoContent, w.Code)
 	assert.Empty(t, w.Body.String())

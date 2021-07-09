@@ -167,7 +167,7 @@ func TestRenderAsciiJSON(t *testing.T) {
 		"tag":  "<br>",
 	}
 
-	err := (AsciiJSON{data1}).Render(w1)
+	err := (ASCIIJSON{data1}).Render(w1)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "{\"lang\":\"GO\\u8bed\\u8a00\",\"tag\":\"\\u003cbr\\u003e\"}", w1.Body.String())
@@ -176,7 +176,7 @@ func TestRenderAsciiJSON(t *testing.T) {
 	w2 := httptest.NewRecorder()
 	data2 := float64(3.1415926)
 
-	err = (AsciiJSON{data2}).Render(w2)
+	err = (ASCIIJSON{data2}).Render(w2)
 	assert.NoError(t, err)
 	assert.Equal(t, "3.1415926", w2.Body.String())
 }
@@ -186,7 +186,7 @@ func TestRenderAsciiJSONFail(t *testing.T) {
 	data := make(chan int)
 
 	// json: unsupported type: chan int
-	assert.Error(t, (AsciiJSON{data}).Render(w))
+	assert.Error(t, (ASCIIJSON{data}).Render(w))
 }
 
 func TestRenderPureJSON(t *testing.T) {
