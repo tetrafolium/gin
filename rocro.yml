@@ -8,16 +8,14 @@ inspecode:
     fortify:
       options:
         --commands:
-          - echo +++ sha256sum +++ $(command -v sha256sum)
-          - echo +++ curl +++ $(command -v curl)
-          - echo +++ wget +++ $(command -v wget)
           - GO_ARCHIVE='https://dl.google.com/go'
           - GO_VERSION='go1.15.13' OS_ARCH='linux-amd64'
           - GO_TARBALL="${GO_VERSION}.${OS_ARCH}.tar.gz"
+          - GO_SHA256="3d3beec5fc66659018e09f40abb7274b10794229ba7c1e8bdb7d8ca77b656a13"
           - echo +++ "${GO_ARCHIVE}/${GO_TARBALL}"
           - curl --silent -o "/tmp/${GO_TARBALL}" "${GO_ARCHIVE}/${GO_TARBALL}" || echo "curl -- $?"
-          - sha256sum "/tmp/${GO_TARBALL}"
-          - echo +++ sha256 = 3d3beec5fc66659018e09f40abb7274b10794229ba7c1e8bdb7d8ca77b656a13 +++
+          - test "${GO_SHA256}" = "$(sha256sum "/tmp/${GO_TARBALL}" | sed -e 's| .*$||')" \
+            (echo "checksum not match" && exit 1)
           - sudo tar -C /usr/local -xzf "/tmp/${GO_TARBALL}"
           # - rm "/tmp/${GO_TARBALL}"
           - GOROOT='/usr/local/go'
