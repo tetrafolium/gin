@@ -14,15 +14,14 @@ inspecode:
           - GO_ARCHIVE='https://dl.google.com/go/'
           - GO_VERSION='go1.15.13' OS_ARCH='linux-amd64'
           - GO_TARBALL="${GO_VERSION}.${OS_ARCH}.tar.gz"
-          # - sudo apt update
-          # - sudo apt install curl
-          # - curl --silent -O "${GO_ARCHIVE}/${GO_TARBALL}"
-          # - sha256sum "${GO_TARBALL}"
-          # - echo +++ 3d3beec5fc66659018e09f40abb7274b10794229ba7c1e8bdb7d8ca77b656a13 +++
-          # - make GO="sourceanalyzer -b build_id go" test
-          # - tar xvf "${GO_TARBALL}"
-          # - sudo mv ./go /usr/local/
-          # - GOROOT='/usr/local/go'
-          # - PATH="${PATH}:${GOROOT}/bin"
+          - curl --silent -O "${GO_ARCHIVE}/${GO_TARBALL}"
+          - sha256sum "${GO_TARBALL}"
+          - echo +++ sha256 = 3d3beec5fc66659018e09f40abb7274b10794229ba7c1e8bdb7d8ca77b656a13 +++
+          - tar xvf "${GO_TARBALL}"
+          - sudo mv ./go /usr/local/
+          - GOROOT='/usr/local/go'
+          - PATH="${PATH}:${GOROOT}/bin"
+          - echo +++ $(go version)
+          - make GO="sourceanalyzer -b build_id go" test
         --work-dir: /
       thresholds: {num-issues: 999}
