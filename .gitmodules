@@ -1,3 +1,0 @@
-[submodule ".gitmodules.d/inspecode-tasks"]
-	path = .gitmodules.d/inspecode-tasks
-	url = https://github.com/tetrafolium/inspecode-tasks.git

@@ -14,9 +14,11 @@ inspecode:
       artifacts:
         uploads:
           - stage: linter-stage
-            path: "/.reports/"
+            path: '/.reports/'
       reports:
         - stage: linter-stage
-          path: "/.reports/yamllint.sarif"
-      machine: {cpu: 0.75}
+          path: '/.reports/yamllint.issues'
+          format:
+            type: example
+            path: '.rocro/yamllint/example.issues'
       thresholds: {num-issues: 9}
