@@ -1,7 +1,7 @@
 FROM python:alpine AS linter-stage
 
 ### Install golang ...
-RUN apk add --update --no-cache go && \
+RUN apk add --update --no-cache go=1.15.13 && \
     echo "+++ $(go version)"
 
 ENV GOBIN="$GOROOT/bin" GOPATH="/.go"
